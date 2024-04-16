@@ -7,11 +7,12 @@ const ctx = canvas.getContext("2d");
 form.onsubmit = (e) => {
     e.preventDefault()
     let textChord = e.target[0].value
-    if (textChord.length !== STRINGS_NUM) return alert("Text chord must be in format of 6 strings, eg. 002220 or x78797")
-    if (textChord.match(/^[0-9x]*$/)?.[0] !== textChord) return alert("Text chord can contain only numbers or x")
+    if (textChord.match(/^[0-9x\-]*$/)?.[0] !== textChord) return alert("Text chord can contain only numbers or x or -")
+    textChord = textChord.includes("-") ? textChord.split("-") : textChord.split("")
+    if (textChord.length !== STRINGS_NUM) return alert("Text chord must be in format of 6 strings, eg. 8-10-10-9-8-8 or x78797")
     ctx.clearRect(0, 0, canvas.width, canvas.height);
     ctx.beginPath();
-    textChord = textChord.split("").map(val => val === "x" ? null : parseInt(val))
+    textChord = textChord.map(val => val === "x" ? null : parseInt(val))
     let smallestFretNum = Math.min(...textChord.filter(val => val != null))
     let smallestFretNumWithoutZero = Math.min(...textChord.filter(val => val != null && val > 0 ))
     let biggestFretNum = Math.max(...textChord.filter(val => val != null && val > 0))
