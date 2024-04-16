@@ -23,15 +23,36 @@ form.onsubmit = (e) => {
     drawFretboard(fretNumToRender, startingFret)
     
     if (startingFret !== 0) {
-        textChord.map((fret, i) => {
+        let barresDrawnOnFret = []
+        let textChordWithoutBarres = textChord.map((fret, i) => {
+            if (fret === 0) return fret
+            if (fret === null) return fret
+            if (textChord.filter(val => val === fret).length <= 1) return fret;
+            if ([...textChord.slice(i + 1)].filter(val => val < fret).length > 0) return fret;
+            if (barresDrawnOnFret.includes(fret)) return 0;
             let relativeFret = fret - startingFret + 1
-            if (fret === null) drawMutedString(i + 1)
+            drawBarre(relativeFret, i+1, textChord.lastIndexOf(fret)+1)
+            barresDrawnOnFret.push(fret)
+            return 0;
+        })
+        textChordWithoutBarres.map((fret, i) => {
+            let relativeFret = fret - startingFret + 1
+            if (fret === null) return drawMutedString(i + 1)
             if (fret !== null && relativeFret > 0) drawItemOnFretboard([i + 1, relativeFret])
         })
-        //je víc než 1? a další stringy !== menší hodnotu || 0 || null => bar
     } else {
-        //render from 0
-        textChord.map((fret, i) => {
+        let barresDrawnOnFret = []
+        let textChordWithoutBarres = textChord.map((fret, i) => {
+            if (fret === 0) return fret
+            if (fret === null) return fret
+            if (textChord.filter(val => val === fret).length <= 1) return fret;
+            if ([...textChord.slice(i + 1)].filter(val => val < fret).length > 0) return fret;
+            if (barresDrawnOnFret.includes(fret)) return 0;
+            drawBarre(fret, i+1, textChord.lastIndexOf(fret) + 1)
+            barresDrawnOnFret.push(fret)
+            return 0;
+        })
+        textChordWithoutBarres.map((fret, i) => {
             if (fret !== null && fret !== 0) drawItemOnFretboard([i + 1, fret])
             if (fret === null) drawMutedString(i+1)
         })
@@ -53,6 +74,17 @@ const drawItemOnFretboard = (relativeCoordinates) => {
     ctx.arc(x, y, pointRadius, 0, 2 * Math.PI);
     ctx.fillStyle = "black";
     ctx.fill();
+    return {x,y}
+}
+
+const drawBarre = (fret, start, end) => {
+    let startCoords = drawItemOnFretboard([start, fret])
+    let endCoords = drawItemOnFretboard([end, fret])
+    ctx.beginPath();
+    ctx.lineWidth = 5.5;
+    ctx.moveTo(startCoords.x, startCoords.y);
+    ctx.lineTo(endCoords.x, endCoords.y);
+    ctx.stroke()
 }
 
 const drawMutedString = (string, fretNum=5) => {
@@ -63,8 +95,8 @@ const drawMutedString = (string, fretNum=5) => {
 const drawFretboard = (fretNum, base=0) => {
     if (!isFinite(base)) base=0
     ctx.lineWidth = 3;
-    ctx.moveTo(paddingX, paddingY);
-    ctx.lineTo(paddingX + STRINGS_NUM * stringWidth + (STRINGS_NUM - 1) * stringsGap, paddingY);
+    ctx.moveTo(paddingX - 1, paddingY);
+    ctx.lineTo(paddingX + STRINGS_NUM * stringWidth + (STRINGS_NUM - 1) * stringsGap + 1, paddingY);
     ctx.stroke();
     ctx.lineWidth = stringWidth;
     for (let index = 0; index <= STRINGS_NUM; index++) {
